@@ -6,8 +6,6 @@ render_with_liquid: false
 ---
 ## ✨ Refactoring Hardware Initialization for VEML6030 and VEML6035 Sensors
 
-
-
 This refactoring had as collaborators Gabriel Lima, [Gabriel José](https://gabrielpereir4.github.io/gabriel-portfolio/), [Vitor](https://vitormarquesr.github.io/blog/).
 
 ### 🧭 Objective
@@ -21,18 +19,7 @@ Both functions shared around  **90% identical logic** .
 
 ---
 
-### 🧠 Analysis & Strategy
-
-#### 🔍 Initial Situation
-
-Both functions:
-
-* Configured gain and integration time.
-* Powered the ALS on/off.
-* Updated common ALS registers with default values.
-* Registered power-off cleanup actions and cleared interrupt flags.
-
-#### 💡 Options Considered
+### 💡 Options Considered
 
 | Option      | Description                                                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -184,18 +171,6 @@ static int veml6030_hw_init(struct iio_dev *indio_dev, struct device *dev)
 
 ---
 
-### 🧪 Validation
-
-After refactoring, both drivers were tested under:
-
-* Default power-on conditions.
-* Interrupt clearing.
-* Gain and integration time setup.
-* ALS register validation.
-
-Everything behaved as expected across both sensor types.
-
----
 
 ### ✅ Conclusion
 
