@@ -53,4 +53,13 @@ duplicação faz sentido, mas quem irá determinar a validade deste caso
 neste contexto serão os mantenedores e a comunidade.
 ```
 
-Finally, after making the corrections, we send it again to the monitors and then send it to the official Kernel maintainers.
+The main issue is that we had forgotten to run 'checkpatch' before sending the patch, thus the coding style problems.
+After the feedback from the TAs, we ran 'checkpatch' on the patch and the coding style problems detected were in the following
+categories:
+
+* Trailing whitespaces
+* Identation errors, mainly in conditional `if` clauses
+* Brackets {} placed after the function definition instead of below it
+* Lines exceeding 100 characters
+
+Finally, after making the corrections, we sent it again to the monitors and the official Kernel maintainers.
