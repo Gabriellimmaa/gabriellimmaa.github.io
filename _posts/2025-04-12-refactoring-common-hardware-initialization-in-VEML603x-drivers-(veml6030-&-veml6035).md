@@ -1,14 +1,12 @@
 ---
-title: Refactoring Hardware Initialization for VEML6030 and VEML6035 Sensors
-categories: [Open Source Software Development, Kernel Contribuitions]
+title: Kernel Contribution - Refactoring hardware initialization for VEML6030 and VEML6035 sensors
+categories: [Open Source Software Development, Kernel Contribuitions, MAC0470]
 tags: [linux, kernal, refactoring, patch, iio, open-source, kernel-linux]
 render_with_liquid: false
 ---
-## ✨ Refactoring Hardware Initialization for VEML6030 and VEML6035 Sensors
+This refactoring had as collaborators [Gabriel Lima](https://gabriellimmaa.github.io/), [Gabriel José](https://gabrielpereir4.github.io/gabriel-portfolio/), [Vitor Marques](https://vitormarquesr.github.io/blog/).
 
-This refactoring had as collaborators Gabriel Lima, [Gabriel José](https://gabrielpereir4.github.io/gabriel-portfolio/), [Vitor](https://vitormarquesr.github.io/blog/).
-
-### 🧭 Objective
+### Objective
 
 Remove duplicated code between the hardware initialization functions of the ambient light sensors **VEML6030** and  **VEML6035** , located in:
 
@@ -19,7 +17,7 @@ Both functions shared around  **90% identical logic** .
 
 ---
 
-### 💡 Options Considered
+### Options Considered
 
 | Option      | Description                                                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -30,7 +28,7 @@ We chose **Option 2** for being cleaner, more consistent, and easier to maintain
 
 ---
 
-### 🛠️ The Final Function: `veml603x_hw_common_init`
+### The Final Function: `veml603x_hw_common_init`
 
 ```c
 /**
@@ -116,9 +114,9 @@ int als_conf_val2
 
 ---
 
-### 🧩 Applying It to Original Drivers
+### Applying It to Original Drivers
 
-#### ✅ `veml6035_hw_init`
+#### `veml6035_hw_init`
 
 ```c
 static int veml6035_hw_init(struct iio_dev *indio_dev, struct device *dev)
@@ -138,7 +136,7 @@ static int veml6035_hw_init(struct iio_dev *indio_dev, struct device *dev)
 }
 ```
 
-#### ✅ `veml6030_hw_init`
+#### `veml6030_hw_init`
 
 ```c
 static int veml6030_hw_init(struct iio_dev *indio_dev, struct device *dev)
@@ -159,7 +157,7 @@ static int veml6030_hw_init(struct iio_dev *indio_dev, struct device *dev)
 
 ---
 
-### 🧾 Parameter Differences Between Devices
+### Parameter Differences Between Devices
 
 | Parameter         | VEML6030              | VEML6035                         |
 | ----------------- | --------------------- | -------------------------------- |
@@ -171,7 +169,6 @@ static int veml6030_hw_init(struct iio_dev *indio_dev, struct device *dev)
 
 ---
 
-
-### ✅ Conclusion
+### Conclusion
 
 This change eliminated more than 100 lines of duplicated code, reduced future maintenance costs, and simplified the process of adding support for other VEML sensors in the future. Centralizing logic via a single parameterized function has made the driver code much more consistent and scalable.
