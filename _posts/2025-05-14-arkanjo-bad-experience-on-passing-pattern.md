@@ -1,4 +1,4 @@
-# 🔍 Refactoring Similarity Filtering in Arkanjo: Advanced Support for Path and Function Name Patterns
+# Refactoring Similarity Filtering in Arkanjo: Advanced Support for Path and Function Name Patterns
 
 As part of my recent contributions to the [Arkanjo project](https://github.com/LipArcanjo/arkanjo), I implemented an important refactor in the function similarity exploration system. The main goal was to enable more precise filtering based on two distinct criteria:
 
@@ -9,7 +9,7 @@ This change affected both the `Similarity_Explorer` class and the entry point of
 
 ---
 
-## ✨ Improvements in `Similarity_Explorer`
+## Improvements in `Similarity_Explorer`
 
 The `match_pattern` method was redesigned to support two separate patterns:
 
@@ -39,7 +39,7 @@ This logic allows the user to define much more specific filters, combining file 
 
 ---
 
-## 🧩 Integration with the `Orchestrator`
+## Integration with the `Orchestrator`
 
 To make this feature accessible via the command line, the `Orchestrator` was updated. It now supports the `-fn` flag to filter by function name:
 
@@ -72,12 +72,12 @@ void exploration_command(vector<string> parameters, Similarity_Table *similarity
 }
 ```
 
-### 💡 Example usage in terminal:
+### Example usage in terminal:
 
 ```bash
 ./exec ex -c T false -fn sorted_by_distance_to_median -p tests/test_multiple_file_big_functions_against_small
 ```
 
-## 🧪 Results
+## Results
 
 With these changes, Arkanjo users now have much more control when analyzing duplicated code. This is particularly useful in large codebases, or when trying to detect repeated logic across similarly named utility functions.

@@ -8,7 +8,7 @@ Recently I contributed to the [Arkanjo project](https://github.com/LipArcanjo/ar
 
 ---
 
-## ✅ Prerequisites on macOS
+## Prerequisites on macOS
 
 These are the dependencies required to run Arkanjo on macOS. All can be installed using [Homebrew](https://brew.sh/):
 
@@ -21,7 +21,7 @@ brew install jsoncpp
 
 ---
 
-## ⚠️ Main Issues and Fixes
+## Main Issues and Fixes
 
 ### 1. `#include <bits/stdc++.h>`
 
@@ -69,7 +69,7 @@ if (fs::exists(dir_to_remove)) {
 
 ---
 
-## 🛠️ Updated Makefile
+## Updated Makefile
 
 Here is the final version of the `Makefile` that works correctly on macOS:
 
@@ -100,7 +100,7 @@ clean:
 
 ---
 
-## 🔁 Frequently Used Commands
+## Frequently Used Commands
 
 These were the key commands I ran during the build process:
 
@@ -112,7 +112,7 @@ make
 
 ---
 
-## 📝 Issue Resolved
+## Issue Resolved
 
 This contribution was made to solve the following open issue:
 
@@ -120,7 +120,7 @@ This contribution was made to solve the following open issue:
 
 ---
 
-## 💡 Conclusion
+## Conclusion
 
 Porting a C++ project designed for Linux to macOS requires special attention to header compatibility, library paths, and shell command usage. It was a great learning experience and a valuable contribution to make the project cross-platform.
 
