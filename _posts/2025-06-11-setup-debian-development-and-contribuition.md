@@ -4,8 +4,6 @@ categories: [Open Source Software Development, Debian, Contributions]
 tags: [debian, sbuild, chroot, dpkg, debootstrap, packaging, ruby, rack, error, ci/cd]
 render_with_liquid: false
 ---
-# Setting up a Debian VM with QEMU, Expanding Storage, and Configuring `sbuild` for Packaging
-
 In this post, I will document my experience setting up a Debian virtual machine using QEMU, expanding its storage properly, and configuring the `sbuild` tool to package Debian projects, including some of the errors I faced and how I solved them.
 
 ---
