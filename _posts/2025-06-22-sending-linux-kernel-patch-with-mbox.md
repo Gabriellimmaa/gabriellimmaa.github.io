@@ -1,148 +1,125 @@
 ---
-title: Sending a Patch to the Linux Kernel from an .mbox File
-categories: [Open Source Software Development, Kernel Contribuitions, MAC0470]
-tags: [linux, kernal, refactoring, patch, iio, open-source, kernel-linux]
+title: Sending a Patch to the Linux Kernel from an .mbox File (and Solving SMTP Issues)
+categories: [Open Source Software Development, Kernel Contributions, MAC0470]
+tags: [linux, kernel, refactoring, patch, iio, open-source, kernel-linux, git-send-email, smtp]
 render_with_liquid: false
 ---
-Recently, I needed to send a patch to the Linux kernel using an `.mbox` file sent by a monitor from the Free Software course. Here, I share the step-by-step process I followed, the difficulties I encountered, and some tips that might help anyone in the same situation.
+
+Recently, I needed to send a patch to the Linux kernel for the IIO subsystem. The patch came as an `.mbox` file, and the task involved several steps: applying the patch, generating a clean commit, and sending it via email using `git send-email`.
+
+Along the way, I encountered a common but frustrating problem: SMTP misconfiguration.
 
 ---
 
 ## The Context: Receiving the `.mbox` Patch
 
-The patch did not come in the traditional diff or `.patch` file format but rather as an `.mbox` file — a format used to store emails, common in patch submissions via the kernel mailing list.
+The patch did not arrive as a traditional `.diff` or `.patch` file. Instead, it came in `.mbox` format — a format used to store full emails, often used for mailing list workflows.
 
-I received guidance from David Tadokoro, who warned me that the version of the patch I had was corrupted and did not apply correctly to the kernel tree, showing the error:
+After attempting to apply the original patch, I encountered this error:
 
 ```
 error: corrupt patch at line 76
 Patch failed at 0001 iio: light : veml6030: Remove code duplication
 ```
 
-He sent me version v1 of the patch in `.mbox` format that applied correctly using:
+David Tadokoro kindly sent me a correct `.mbox` version of the patch. Applying it was straightforward:
 
 ```bash
-git am <path-to-mbox-file>
-```
-
-This command "rebuilds" the commit from the patch and makes local corrections easier with `git commit --amend`.
-
----
-
-## Steps I Followed in the Terminal
-
-Below is a summary of the commands I used to prepare the repository, apply the patch, and send it:
-
-```bash
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-cd linux
-git checkout master
-git pull
-
-git am patch.mbox    # Apply the patch received in mbox format
-
-git log -1           # Verify the applied commit
-git format-patch -1 HEAD  # Generate patch for sending
-
-git config user.email "gabriellimamoraes@ime.usp.br"
-git config user.name "Gabriel Lima de Moraes"
-
-git send-email --to="iio@lists.linux.dev" --cc="linux-iio@vger.kernel.org" HEAD~1
+git am patch.mbox
 ```
 
 ---
 
-## Problems I Encountered
+## SMTP Problem: Sending from my IME-USP Email Failed
 
-### 1. Corrupted Patch
+Initially, I tried sending the patch from my institutional email `gabriellimamoraes@ime.usp.br`.  
 
-As David mentioned, the original patch had corrupted lines causing `git am` to fail. Always verify patch integrity before trying to apply it.
+However, I soon realized that I didn't have SMTP properly configured for this account, and my attempts to send patches with `git send-email` were failing silently or being rejected by the mail server.
 
-### 2. Case Sensitivity on macOS
+My `.gitconfig` had these settings at first:
 
-My local environment is a MacBook, whose filesystem is **case insensitive by default**. This caused some subtle problems with filenames and paths expected by Linux, which is case sensitive.
+```ini
+[sendemail]
+    smtpServer = smtp.ime.usp.br
+    smtpServerPort = 587
+    smtpEncryption = tls
+    smtpUser = gabriellimamoraes@ime.usp.br
+    smtpPass = <password>
+```
 
-To avoid confusion, I recommend doing patch work in a native Linux environment or in a virtual machine/container, or at least paying close attention to patch filenames and paths.
+But sending did not work.
 
-### 3. Using `--dry-run` in `git send-email`
+---
 
-I did some tests with the `--dry-run` flag to simulate patch sending without actually sending the email. This is useful to check if the sending is configured correctly, but don’t forget to remove this flag when you want to actually send it.
+## Solution: Switching to Gmail SMTP
+
+To quickly resolve the issue, I switched to my personal Gmail account.
+
+I updated my `.gitconfig`:
+
+```ini
+[sendemail]
+    smtpServer = smtp.gmail.com
+    smtpServerPort = 587
+    smtpEncryption = tls
+    smtpUser = gabriellimamoraes@gmail.com
+    smtpPass = <Gmail App Password>
+```
+
+Then, I tested with:
+
+```bash
+git send-email --smtp-debug=1 --to="linux-iio@vger.kernel.org" --cc="gabriellimamoraes@ime.usp.br" HEAD~1
+```
+
+The log showed a `250 OK` response from the SMTP server, indicating successful delivery.
+
+---
+
+## Correct Mailing List Address: <linux-iio@vger.kernel.org>
+
+Another issue: initially I was trying to send the patch to `iio@lists.linux.dev`, which returned this error:
+
+```
+550 5.1.1 : Recipient address rejected: User unknown in virtual alias table
+```
+
+After checking the official [vger.kernel.org mailing lists](https://vger.kernel.org/vger-lists.html), I confirmed that the correct address for the IIO subsystem is:
+
+```
+linux-iio@vger.kernel.org
+```
+
+---
+
+## Final Send Command
+
+```bash
+git send-email --to="linux-iio@vger.kernel.org" --cc="gabriellimamoraes@ime.usp.br" HEAD~1
+```
+
+Final result:
+
+- Email successfully sent
+- I received a copy in my inbox (Cc)
+- The patch appeared on [lore.kernel.org](https://lore.kernel.org/linux-iio/)
 
 ---
 
 ## Lessons Learned
 
-- Understanding the `.mbox` format and how to use `git am` is essential to contribute to the Linux kernel, as many patches are sent by email.
-- Always ensure your local repository is clean and up to date before applying patches.
-- Set the user configurations (`user.name` and `user.email`) so your commits have the correct authorship.
-- Test sending with `--dry-run` to avoid accidental sends.
-- Be especially careful with the environment where you apply the patch — filesystem differences can cause headaches.
+- **Always double-check the mailing list address** on official pages like [vger.kernel.org](https://vger.kernel.org/vger-lists.html)
+- **Configure SMTP with a reliable provider**: Gmail worked well for me
+- **Use `--smtp-debug=1` for troubleshooting**
+- **Cc yourself** if you want a copy of your patch submission
+- **Confirm on lore.kernel.org** to ensure your patch was published
 
 ---
 
-## Patch details
+ Contributing to the Linux kernel can be challenging, but it's a rewarding learning experience
 
-```git
-gabriellima@Gabriels-MacBook-Pro linux % git send-email --to="iio@lists.linux.dev" --cc="linux-iio@vger.kernel.org" HEAD~1
+## Link to my patch on lore.kernel.org
 
-/var/folders/q8/5ns3_c0s02j19tb1zyv3868w0000gn/T/UPhdN3F8hQ/0001-iio-light-veml6030-Remove-code-duplication.patch
-(mbox) Adding cc: Vitor Marques <vitor.marques@ime.usp.br> from line 'From: Vitor Marques <vitor.marques@ime.usp.br>'
-(body) Adding cc: Vitor Marques <vitor.marques@ime.usp.br> from line 'Signed-off-by: Vitor Marques <vitor.marques@ime.usp.br>'
-(body) Adding cc: Gabriel Lima <gabriellimamoraes@ime.usp.br> from line 'Co-developed-by: Gabriel Lima <gabriellimamoraes@ime.usp.br>'
-(body) Adding cc: Gabriel José <gabrieljpe@ime.usp.br> from line 'Co-developed-by: Gabriel José <gabrieljpe@ime.usp.br>'
+You can view the final result of my patch submission here:
 
-From: Gabriel Lima de Moraes <gabriellimamoraes@ime.usp.br>
-To: iio@lists.linux.dev
-Cc: linux-iio@vger.kernel.org,
-	Vitor Marques <vitor.marques@ime.usp.br>,
-	Gabriel Lima <gabriellimamoraes@ime.usp.br>,
-	=?UTF-8?q?Gabriel=20Jos=C3=A9?= <gabrieljpe@ime.usp.br>
-Subject: [PATCH] iio: light : veml6030 Remove code duplication
-Date: Sun, 22 Jun 2025 20:17:34 -0300
-Message-ID: <20250622231734.29684-1-gabriellimamoraes@ime.usp.br>
-X-Mailer: git-send-email 2.43.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-    The Cc list above has been expanded by additional
-    addresses found in the patch commit message. By default
-    send-email prompts before sending whenever this occurs.
-    This behavior is controlled by the sendemail.confirm
-    configuration setting.
-
-    For additional information, run 'git send-email --help'.
-    To retain the current behavior, but squelch this message,
-    run 'git config --global sendemail.confirm auto'.
-
-Send this email? ([y]es|[n]o|[e]dit|[q]uit|[a]ll): y
-OK. Log says:
-Sendmail: /usr/sbin/sendmail -i iio@lists.linux.dev linux-iio@vger.kernel.org vitor.marques@ime.usp.br gabriellimamoraes@ime.usp.br gabrieljpe@ime.usp.br
-From: Gabriel Lima de Moraes <gabriellimamoraes@ime.usp.br>
-To: iio@lists.linux.dev
-Cc: linux-iio@vger.kernel.org,
-	Vitor Marques <vitor.marques@ime.usp.br>,
-	Gabriel Lima <gabriellimamoraes@ime.usp.br>,
-	=?UTF-8?q?Gabriel=20Jos=C3=A9?= <gabrieljpe@ime.usp.br>
-Subject: [PATCH] iio: light : veml6030 Remove code duplication
-Date: Sun, 22 Jun 2025 20:17:34 -0300
-Message-ID: <20250622231734.29684-1-gabriellimamoraes@ime.usp.br>
-X-Mailer: git-send-email 2.43.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Result: OK
-```
-
----
-
-
-
-## Conclusion
-
-Sending patches to the Linux kernel might seem intimidating, but with the right workflow and good practices, it becomes a smooth process. My experience involved technical challenges, communication with maintainers, and fine-tuning the environment, but it was a great learning opportunity.
-
-If you are on this journey too, don’t hesitate to seek help from the community and validate your steps before sending.
-
----
+👉 <https://lore.kernel.org/all/20250623201539.16148-1-gabriellimamoraes@gmail.com/>
